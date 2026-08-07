@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-License-Identifier: MIT */
 
 #ifndef SESSIONMANAGER_I18N_H
 #define SESSIONMANAGER_I18N_H

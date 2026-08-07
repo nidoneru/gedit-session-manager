@@ -1,4 +1,4 @@
-/* SPDX-License-Identifier: GPL-2.0-or-later */
+/* SPDX-License-Identifier: MIT */
 #pragma once
 #include <libpeas/peas.h>
 G_BEGIN_DECLS
