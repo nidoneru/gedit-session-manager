@@ -1,18 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-window.h"
+#include "sessionmanager-window.h"
 
 #include <gedit/gedit-commands.h>
 #include <gedit/gedit-document.h>
 #include <gtksourceview/gtksource.h>
 
-SessionsaverSession *
-sessionsaver_capture_window (
+SessionmanagerSession *
+sessionmanager_capture_window (
 	GeditWindow *window,
 	const gchar *name
 )
 {
-	SessionsaverSession *session;
+	SessionmanagerSession *session;
 	GList *documents;
 	GList *item;
 
@@ -20,7 +20,7 @@ sessionsaver_capture_window (
 	g_return_val_if_fail (name != NULL, NULL);
 	g_return_val_if_fail (name[0] != '\0', NULL);
 
-	session = sessionsaver_session_new (name);
+	session = sessionmanager_session_new (name);
 	documents = gedit_window_get_documents (window);
 
 	for (item = documents; item != NULL; item = item->next)
@@ -47,7 +47,7 @@ sessionsaver_capture_window (
 
 		if (uri != NULL)
 		{
-			sessionsaver_session_add_file (
+			sessionmanager_session_add_file (
 				session,
 				uri
 			);
@@ -62,9 +62,9 @@ sessionsaver_capture_window (
 }
 
 gboolean
-sessionsaver_restore_window (
+sessionmanager_restore_window (
 	GeditWindow               *window,
-	const SessionsaverSession *session
+	const SessionmanagerSession *session
 )
 {
 	GSList *locations = NULL;

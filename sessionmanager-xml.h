@@ -4,19 +4,19 @@
 
 #include <glib.h>
 
-#include "sessionsaver-session.h"
+#include "sessionmanager-session.h"
 
 G_BEGIN_DECLS
 
 gboolean
-sessionsaver_xml_save (
-	const SessionsaverSessionStore *store,
+sessionmanager_xml_save (
+	const SessionmanagerSessionStore *store,
 	const gchar                    *path,
 	GError                        **error
 );
 
-SessionsaverSessionStore *
-sessionsaver_xml_load (
+SessionmanagerSessionStore *
+sessionmanager_xml_load (
 	const gchar *path,
 	GError     **error
 );

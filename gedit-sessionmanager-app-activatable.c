@@ -1,17 +1,17 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gedit-sessionsaver-app-activatable.h"
+#include "gedit-sessionmanager-app-activatable.h"
 
-#include "sessionsaver-service.h"
+#include "sessionmanager-service.h"
 
 #include <glib/gi18n.h>
 
 #include <gedit/gedit-app.h>
 #include <gedit/gedit-app-activatable.h>
 #include <gedit/gedit-menu-extension.h>
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
-struct _GeditSessionsaverAppActivatablePrivate
+struct _GeditSessionmanagerAppActivatablePrivate
 {
 	GeditApp *app;
 	GeditMenuExtension *menu_extension;
@@ -23,7 +23,7 @@ enum
 	PROP_APP
 };
 
-static GeditSessionsaverAppActivatable *active_instance = NULL;
+static GeditSessionmanagerAppActivatable *active_instance = NULL;
 
 static void
 gedit_app_activatable_iface_init (
@@ -31,17 +31,17 @@ gedit_app_activatable_iface_init (
 );
 
 static void
-gedit_sessionsaver_app_activatable_activate (
+gedit_sessionmanager_app_activatable_activate (
 	GeditAppActivatable *activatable
 );
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (
-	GeditSessionsaverAppActivatable,
-	gedit_sessionsaver_app_activatable,
+	GeditSessionmanagerAppActivatable,
+	gedit_sessionmanager_app_activatable,
 	G_TYPE_OBJECT,
 	0,
 	G_ADD_PRIVATE_DYNAMIC (
-		GeditSessionsaverAppActivatable
+		GeditSessionmanagerAppActivatable
 	)
 	G_IMPLEMENT_INTERFACE_DYNAMIC (
 		GEDIT_TYPE_APP_ACTIVATABLE,
@@ -50,16 +50,16 @@ G_DEFINE_DYNAMIC_TYPE_EXTENDED (
 )
 
 static void
-gedit_sessionsaver_app_activatable_get_property (
+gedit_sessionmanager_app_activatable_get_property (
 	GObject    *object,
 	guint       prop_id,
 	GValue     *value,
 	GParamSpec *pspec
 )
 {
-	GeditSessionsaverAppActivatable *self;
+	GeditSessionmanagerAppActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_APP_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (
 		object
 	);
 
@@ -85,16 +85,16 @@ gedit_sessionsaver_app_activatable_get_property (
 }
 
 static void
-gedit_sessionsaver_app_activatable_set_property (
+gedit_sessionmanager_app_activatable_set_property (
 	GObject      *object,
 	guint         prop_id,
 	const GValue *value,
 	GParamSpec   *pspec
 )
 {
-	GeditSessionsaverAppActivatable *self;
+	GeditSessionmanagerAppActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_APP_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (
 		object
 	);
 
@@ -123,13 +123,13 @@ gedit_sessionsaver_app_activatable_set_property (
 }
 
 static void
-gedit_sessionsaver_app_activatable_dispose (
+gedit_sessionmanager_app_activatable_dispose (
 	GObject *object
 )
 {
-	GeditSessionsaverAppActivatable *self;
+	GeditSessionmanagerAppActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_APP_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (
 		object
 	);
 
@@ -142,13 +142,13 @@ gedit_sessionsaver_app_activatable_dispose (
 	);
 
 	G_OBJECT_CLASS (
-		gedit_sessionsaver_app_activatable_parent_class
+		gedit_sessionmanager_app_activatable_parent_class
 	)->dispose (object);
 }
 
 static void
-gedit_sessionsaver_app_activatable_class_init (
-	GeditSessionsaverAppActivatableClass *klass
+gedit_sessionmanager_app_activatable_class_init (
+	GeditSessionmanagerAppActivatableClass *klass
 )
 {
 	GObjectClass *object_class;
@@ -156,13 +156,13 @@ gedit_sessionsaver_app_activatable_class_init (
 	object_class = G_OBJECT_CLASS (klass);
 
 	object_class->get_property =
-		gedit_sessionsaver_app_activatable_get_property;
+		gedit_sessionmanager_app_activatable_get_property;
 
 	object_class->set_property =
-		gedit_sessionsaver_app_activatable_set_property;
+		gedit_sessionmanager_app_activatable_set_property;
 
 	object_class->dispose =
-		gedit_sessionsaver_app_activatable_dispose;
+		gedit_sessionmanager_app_activatable_dispose;
 
 	g_object_class_override_property (
 		object_class,
@@ -172,32 +172,32 @@ gedit_sessionsaver_app_activatable_class_init (
 }
 
 static void
-gedit_sessionsaver_app_activatable_class_finalize (
-	GeditSessionsaverAppActivatableClass *klass
+gedit_sessionmanager_app_activatable_class_finalize (
+	GeditSessionmanagerAppActivatableClass *klass
 )
 {
 	(void) klass;
 }
 
 static void
-gedit_sessionsaver_app_activatable_init (
-	GeditSessionsaverAppActivatable *self
+gedit_sessionmanager_app_activatable_init (
+	GeditSessionmanagerAppActivatable *self
 )
 {
 	self->priv =
-		gedit_sessionsaver_app_activatable_get_instance_private (
+		gedit_sessionmanager_app_activatable_get_instance_private (
 			self
 		);
 }
 
-GeditSessionsaverAppActivatable *
-gedit_sessionsaver_app_activatable_get_instance (void)
+GeditSessionmanagerAppActivatable *
+gedit_sessionmanager_app_activatable_get_instance (void)
 {
 	return active_instance;
 }
 
 static gchar *
-gedit_sessionsaver_abbreviate_session_name (
+gedit_sessionmanager_abbreviate_session_name (
 	const gchar *name
 )
 {
@@ -232,12 +232,12 @@ gedit_sessionsaver_abbreviate_session_name (
 }
 
 void
-gedit_sessionsaver_app_activatable_refresh_menu (
-	GeditSessionsaverAppActivatable *self
+gedit_sessionmanager_app_activatable_refresh_menu (
+	GeditSessionmanagerAppActivatable *self
 )
 {
 	g_return_if_fail (
-		GEDIT_SESSIONSAVER_APP_ACTIVATABLE (self)
+		GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (self)
 	);
 
 	if (self->priv->menu_extension != NULL)
@@ -247,20 +247,20 @@ gedit_sessionsaver_app_activatable_refresh_menu (
 		);
 	}
 
-	gedit_sessionsaver_app_activatable_activate (
+	gedit_sessionmanager_app_activatable_activate (
 		GEDIT_APP_ACTIVATABLE (self)
 	);
 }
 
 static void
-gedit_sessionsaver_app_activatable_activate (
+gedit_sessionmanager_app_activatable_activate (
 	GeditAppActivatable *activatable
 )
 {
-	GeditSessionsaverAppActivatable *self;
+	GeditSessionmanagerAppActivatable *self;
 	GMenuItem *item;
 
-	self = GEDIT_SESSIONSAVER_APP_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (
 		activatable
 	);
 
@@ -273,8 +273,8 @@ gedit_sessionsaver_app_activatable_activate (
 		);
 
 	item = g_menu_item_new (
-		sessionsaver_translate ("Save Session…", "セッションを保存…"),
-		"win.sessionsaver-save-session"
+		sessionmanager_translate ("Save Session…", "セッションを保存…"),
+		"win.sessionmanager-save-session"
 	);
 
 	gedit_menu_extension_append_menu_item (
@@ -286,7 +286,7 @@ gedit_sessionsaver_app_activatable_activate (
 
 	gtk_application_set_accels_for_action (
 		GTK_APPLICATION (self->priv->app),
-		"win.sessionsaver-manage-sessions",
+		"win.sessionmanager-manage-sessions",
 		(const gchar *[]) {
 			"<Primary>r",
 			NULL
@@ -294,8 +294,8 @@ gedit_sessionsaver_app_activatable_activate (
 	);
 
 	item = g_menu_item_new (
-		sessionsaver_translate ("Manage Sessions…", "セッションを管理…"),
-		"win.sessionsaver-manage-sessions"
+		sessionmanager_translate ("Manage Sessions…", "セッションを管理…"),
+		"win.sessionmanager-manage-sessions"
 	);
 
 	gedit_menu_extension_append_menu_item (
@@ -306,11 +306,11 @@ gedit_sessionsaver_app_activatable_activate (
 	g_object_unref (item);
 
 	{
-		SessionsaverSessionStore *store;
+		SessionmanagerSessionStore *store;
 		GError *error = NULL;
 		guint i;
 
-		store = sessionsaver_load_session_store (
+		store = sessionmanager_load_session_store (
 			&error
 		);
 
@@ -324,17 +324,17 @@ gedit_sessionsaver_app_activatable_activate (
 		}
 
 		for (i = 0;
-		     i < sessionsaver_session_store_get_n_sessions (
+		     i < sessionmanager_session_store_get_n_sessions (
 			     store
 		     );
 		     i++)
 		{
-			SessionsaverSession *session;
+			SessionmanagerSession *session;
 		gchar *display_name;
 			gchar *label;
 			GVariant *target;
 
-			session = sessionsaver_session_store_get_nth (
+			session = sessionmanager_session_store_get_nth (
 				store,
 				i
 			);
@@ -342,18 +342,18 @@ gedit_sessionsaver_app_activatable_activate (
 			if (session == NULL ||
 			    g_ascii_strcasecmp (
 				    session->name,
-				    SESSIONSAVER_PREVIOUS_SESSION_NAME
+				    SESSIONMANAGER_PREVIOUS_SESSION_NAME
 			    ) == 0)
 			{
 				continue;
 			}
 
 		display_name =
-			gedit_sessionsaver_abbreviate_session_name (
+			gedit_sessionmanager_abbreviate_session_name (
 				session->name
 			);
 
-		label = sessionsaver_format_restore_session (
+		label = sessionmanager_format_restore_session (
 			display_name
 		);
 
@@ -372,7 +372,7 @@ gedit_sessionsaver_app_activatable_activate (
 
 			g_menu_item_set_action_and_target_value (
 				item,
-				"win.sessionsaver-restore-named",
+				"win.sessionmanager-restore-named",
 				target
 			);
 
@@ -390,20 +390,20 @@ gedit_sessionsaver_app_activatable_activate (
 			);
 		}
 
-		sessionsaver_session_store_free (
+		sessionmanager_session_store_free (
 			store
 		);
 	}
 }
 
 static void
-gedit_sessionsaver_app_activatable_deactivate (
+gedit_sessionmanager_app_activatable_deactivate (
 	GeditAppActivatable *activatable
 )
 {
-	GeditSessionsaverAppActivatable *self;
+	GeditSessionmanagerAppActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_APP_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_APP_ACTIVATABLE (
 		activatable
 	);
 
@@ -414,7 +414,7 @@ gedit_sessionsaver_app_activatable_deactivate (
 
 	gtk_application_set_accels_for_action (
 		GTK_APPLICATION (self->priv->app),
-		"win.sessionsaver-manage-sessions",
+		"win.sessionmanager-manage-sessions",
 		(const gchar *[]) {
 			NULL
 		}
@@ -431,24 +431,24 @@ gedit_app_activatable_iface_init (
 )
 {
 	iface->activate =
-		gedit_sessionsaver_app_activatable_activate;
+		gedit_sessionmanager_app_activatable_activate;
 
 	iface->deactivate =
-		gedit_sessionsaver_app_activatable_deactivate;
+		gedit_sessionmanager_app_activatable_deactivate;
 }
 
 void
-gedit_sessionsaver_app_activatable_register (
+gedit_sessionmanager_app_activatable_register (
 	PeasObjectModule *module
 )
 {
-	gedit_sessionsaver_app_activatable_register_type (
+	gedit_sessionmanager_app_activatable_register_type (
 		G_TYPE_MODULE (module)
 	);
 
 	peas_object_module_register_extension_type (
 		module,
 		GEDIT_TYPE_APP_ACTIVATABLE,
-		GEDIT_TYPE_SESSIONSAVER_APP_ACTIVATABLE
+		GEDIT_TYPE_SESSIONMANAGER_APP_ACTIVATABLE
 	);
 }

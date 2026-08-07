@@ -4,43 +4,43 @@
 
 #include <gedit/gedit-window.h>
 
-#include "sessionsaver-session.h"
+#include "sessionmanager-session.h"
 
 G_BEGIN_DECLS
 
 gboolean
-sessionsaver_save_session (
-	SessionsaverSession *session,
+sessionmanager_save_session (
+	SessionmanagerSession *session,
 	GError             **error
 );
 
 gboolean
-sessionsaver_restore_session (
+sessionmanager_restore_session (
 	GeditWindow *window,
 	const gchar *name,
 	GError     **error
 );
 
 gboolean
-sessionsaver_delete_session (
+sessionmanager_delete_session (
 	const gchar *name,
 	GError     **error
 );
 
 gboolean
-sessionsaver_rename_session (
+sessionmanager_rename_session (
 	const gchar *old_name,
 	const gchar *new_name,
 	GError     **error
 );
 
-SessionsaverSessionStore *
-sessionsaver_load_session_store (
+SessionmanagerSessionStore *
+sessionmanager_load_session_store (
 	GError **error
 );
 
 void
-sessionsaver_replace_with_session_async (
+sessionmanager_replace_with_session_async (
 	GeditWindow         *window,
 	const gchar         *name,
 	GCancellable        *cancellable,
@@ -49,7 +49,7 @@ sessionsaver_replace_with_session_async (
 );
 
 gboolean
-sessionsaver_replace_with_session_finish (
+sessionmanager_replace_with_session_finish (
 	GeditWindow  *window,
 	GAsyncResult *result,
 	GError      **error

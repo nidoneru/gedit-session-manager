@@ -1,18 +1,18 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-session.h"
+#include "sessionmanager-session.h"
 
-SessionsaverSession *
-sessionsaver_session_new (
+SessionmanagerSession *
+sessionmanager_session_new (
 	const gchar *name
 )
 {
-	SessionsaverSession *session;
+	SessionmanagerSession *session;
 
 	g_return_val_if_fail (name != NULL, NULL);
 	g_return_val_if_fail (name[0] != '\0', NULL);
 
-	session = g_new0 (SessionsaverSession, 1);
+	session = g_new0 (SessionmanagerSession, 1);
 	session->name = g_strdup (name);
 	session->files = g_ptr_array_new_with_free_func (g_free);
 
@@ -20,8 +20,8 @@ sessionsaver_session_new (
 }
 
 void
-sessionsaver_session_free (
-	SessionsaverSession *session
+sessionmanager_session_free (
+	SessionmanagerSession *session
 )
 {
 	if (session == NULL)
@@ -35,8 +35,8 @@ sessionsaver_session_free (
 }
 
 void
-sessionsaver_session_add_file (
-	SessionsaverSession *session,
+sessionmanager_session_add_file (
+	SessionmanagerSession *session,
 	const gchar         *uri
 )
 {
@@ -50,23 +50,23 @@ sessionsaver_session_add_file (
 	);
 }
 
-SessionsaverSessionStore *
-sessionsaver_session_store_new (void)
+SessionmanagerSessionStore *
+sessionmanager_session_store_new (void)
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 
-	store = g_new0 (SessionsaverSessionStore, 1);
+	store = g_new0 (SessionmanagerSessionStore, 1);
 
 	store->sessions = g_ptr_array_new_with_free_func (
-		(GDestroyNotify) sessionsaver_session_free
+		(GDestroyNotify) sessionmanager_session_free
 	);
 
 	return store;
 }
 
 void
-sessionsaver_session_store_free (
-	SessionsaverSessionStore *store
+sessionmanager_session_store_free (
+	SessionmanagerSessionStore *store
 )
 {
 	if (store == NULL)
@@ -79,9 +79,9 @@ sessionsaver_session_store_free (
 }
 
 void
-sessionsaver_session_store_add (
-	SessionsaverSessionStore *store,
-	SessionsaverSession      *session
+sessionmanager_session_store_add (
+	SessionmanagerSessionStore *store,
+	SessionmanagerSession      *session
 )
 {
 	g_return_if_fail (store != NULL);
@@ -94,9 +94,9 @@ sessionsaver_session_store_add (
 }
 
 void
-sessionsaver_session_store_replace (
-	SessionsaverSessionStore *store,
-	SessionsaverSession      *session
+sessionmanager_session_store_replace (
+	SessionmanagerSessionStore *store,
+	SessionmanagerSession      *session
 )
 {
 	guint i;
@@ -106,7 +106,7 @@ sessionsaver_session_store_replace (
 
 	for (i = 0; i < store->sessions->len; i++)
 	{
-		SessionsaverSession *current;
+		SessionmanagerSession *current;
 
 		current = g_ptr_array_index (
 			store->sessions,
@@ -140,14 +140,14 @@ sessionsaver_session_store_replace (
 }
 
 gboolean
-sessionsaver_session_store_rename (
-	SessionsaverSessionStore *store,
+sessionmanager_session_store_rename (
+	SessionmanagerSessionStore *store,
 	const gchar              *old_name,
 	const gchar              *new_name
 )
 {
-	SessionsaverSession *session;
-	SessionsaverSession *existing;
+	SessionmanagerSession *session;
+	SessionmanagerSession *existing;
 
 	g_return_val_if_fail (store != NULL, FALSE);
 	g_return_val_if_fail (old_name != NULL, FALSE);
@@ -155,7 +155,7 @@ sessionsaver_session_store_rename (
 	g_return_val_if_fail (new_name != NULL, FALSE);
 	g_return_val_if_fail (new_name[0] != '\0', FALSE);
 
-	session = sessionsaver_session_store_find (
+	session = sessionmanager_session_store_find (
 		store,
 		old_name
 	);
@@ -165,7 +165,7 @@ sessionsaver_session_store_rename (
 		return FALSE;
 	}
 
-	existing = sessionsaver_session_store_find (
+	existing = sessionmanager_session_store_find (
 		store,
 		new_name
 	);
@@ -188,8 +188,8 @@ sessionsaver_session_store_rename (
 }
 
 gboolean
-sessionsaver_session_store_remove (
-	SessionsaverSessionStore *store,
+sessionmanager_session_store_remove (
+	SessionmanagerSessionStore *store,
 	const gchar              *name
 )
 {
@@ -201,7 +201,7 @@ sessionsaver_session_store_remove (
 
 	for (i = 0; i < store->sessions->len; i++)
 	{
-		SessionsaverSession *session;
+		SessionmanagerSession *session;
 
 		session = g_ptr_array_index (
 			store->sessions,
@@ -225,9 +225,9 @@ sessionsaver_session_store_remove (
 	return FALSE;
 }
 
-SessionsaverSession *
-sessionsaver_session_store_find (
-	SessionsaverSessionStore *store,
+SessionmanagerSession *
+sessionmanager_session_store_find (
+	SessionmanagerSessionStore *store,
 	const gchar              *name
 )
 {
@@ -238,7 +238,7 @@ sessionsaver_session_store_find (
 
 	for (i = 0; i < store->sessions->len; i++)
 	{
-		SessionsaverSession *session;
+		SessionmanagerSession *session;
 
 		session = g_ptr_array_index (
 			store->sessions,
@@ -258,8 +258,8 @@ sessionsaver_session_store_find (
 }
 
 guint
-sessionsaver_session_store_get_n_sessions (
-	SessionsaverSessionStore *store
+sessionmanager_session_store_get_n_sessions (
+	SessionmanagerSessionStore *store
 )
 {
 	g_return_val_if_fail (store != NULL, 0);
@@ -267,9 +267,9 @@ sessionsaver_session_store_get_n_sessions (
 	return store->sessions->len;
 }
 
-SessionsaverSession *
-sessionsaver_session_store_get_nth (
-	SessionsaverSessionStore *store,
+SessionmanagerSession *
+sessionmanager_session_store_get_nth (
+	SessionmanagerSessionStore *store,
 	guint                     index
 )
 {

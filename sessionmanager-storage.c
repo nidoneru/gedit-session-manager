@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-storage.h"
+#include "sessionmanager-storage.h"
 
-#include "sessionsaver-xml.h"
+#include "sessionmanager-xml.h"
 
 #include <glib/gstdio.h>
 
 static gchar *
-sessionsaver_storage_get_path (void)
+sessionmanager_storage_get_path (void)
 {
 	gchar *directory;
 	gchar *path;
@@ -16,14 +16,14 @@ sessionsaver_storage_get_path (void)
 		g_get_user_data_dir (),
 		"gedit",
 		"plugins",
-		"sessionsaver",
+		"sessionmanager",
 		NULL
 	);
 
 	if (g_mkdir_with_parents (directory, 0700) != 0)
 	{
 		g_warning (
-			"sessionsaver: 保存先ディレクトリを作成できませんでした: %s",
+			"sessionmanager: 保存先ディレクトリを作成できませんでした: %s",
 			directory
 		);
 	}
@@ -39,15 +39,15 @@ sessionsaver_storage_get_path (void)
 	return path;
 }
 
-SessionsaverSessionStore *
-sessionsaver_storage_load (
+SessionmanagerSessionStore *
+sessionmanager_storage_load (
 	GError **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 	gchar *path;
 
-	path = sessionsaver_storage_get_path ();
+	path = sessionmanager_storage_get_path ();
 
 	if (!g_file_test (path, G_FILE_TEST_EXISTS))
 	{
@@ -55,7 +55,7 @@ sessionsaver_storage_load (
 		return NULL;
 	}
 
-	store = sessionsaver_xml_load (
+	store = sessionmanager_xml_load (
 		path,
 		error
 	);
@@ -65,23 +65,23 @@ sessionsaver_storage_load (
 	return store;
 }
 
-SessionsaverSessionStore *
-sessionsaver_storage_load_or_new (
+SessionmanagerSessionStore *
+sessionmanager_storage_load_or_new (
 	GError **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 	gchar *path;
 
-	path = sessionsaver_storage_get_path ();
+	path = sessionmanager_storage_get_path ();
 
 	if (!g_file_test (path, G_FILE_TEST_EXISTS))
 	{
 		g_free (path);
-		return sessionsaver_session_store_new ();
+		return sessionmanager_session_store_new ();
 	}
 
-	store = sessionsaver_xml_load (
+	store = sessionmanager_xml_load (
 		path,
 		error
 	);
@@ -92,8 +92,8 @@ sessionsaver_storage_load_or_new (
 }
 
 gboolean
-sessionsaver_storage_save (
-	const SessionsaverSessionStore *store,
+sessionmanager_storage_save (
+	const SessionmanagerSessionStore *store,
 	GError                        **error
 )
 {
@@ -102,9 +102,9 @@ sessionsaver_storage_save (
 
 	g_return_val_if_fail (store != NULL, FALSE);
 
-	path = sessionsaver_storage_get_path ();
+	path = sessionmanager_storage_get_path ();
 
-	result = sessionsaver_xml_save (
+	result = sessionmanager_xml_save (
 		store,
 		path,
 		error
@@ -115,29 +115,29 @@ sessionsaver_storage_save (
 	return result;
 }
 
-SessionsaverSession *
-sessionsaver_storage_get_previous (
-	SessionsaverSessionStore *store
+SessionmanagerSession *
+sessionmanager_storage_get_previous (
+	SessionmanagerSessionStore *store
 )
 {
 	g_return_val_if_fail (store != NULL, NULL);
 
-	return sessionsaver_session_store_find (
+	return sessionmanager_session_store_find (
 		store,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME
 	);
 }
 
 void
-sessionsaver_storage_replace_session (
-	SessionsaverSessionStore *store,
-	SessionsaverSession      *session
+sessionmanager_storage_replace_session (
+	SessionmanagerSessionStore *store,
+	SessionmanagerSession      *session
 )
 {
 	g_return_if_fail (store != NULL);
 	g_return_if_fail (session != NULL);
 
-	sessionsaver_session_store_replace (
+	sessionmanager_session_store_replace (
 		store,
 		session
 	);

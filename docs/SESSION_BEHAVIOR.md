@@ -1,4 +1,4 @@
-# Session Saver Behavior
+# Session Manager Behavior
 
 ## Previous Session
 
@@ -56,7 +56,7 @@ A named session is created from the saved documents currently open in the
 window.
 
 An empty session is not saved. If the current window contains no saved
-documents, Session Saver displays an informational message.
+documents, Session Manager displays an informational message.
 
 The name `Previous Session` is reserved and cannot be used for a named
 session.
@@ -77,7 +77,7 @@ window with the documents stored in the selected session.
 
 The replacement is performed asynchronously.
 
-If the operation fails or is cancelled, Session Saver displays a warning
+If the operation fails or is cancelled, Session Manager displays a warning
 that the session was not restored. Additional error details may also be
 provided by the underlying save or restore operation.
 
@@ -100,7 +100,7 @@ refreshed so that the available session entries reflect the current data.
 
 ## Save and error behavior
 
-When Session Saver writes `saved-sessions.xml`, an error is reported if the
+When Session Manager writes `saved-sessions.xml`, an error is reported if the
 file cannot be written.
 
 Automatic `Previous Session` updates report write failures as warnings.

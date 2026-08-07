@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-manage-dialog.h"
+#include "sessionmanager-manage-dialog.h"
 
-#include "sessionsaver-service.h"
+#include "sessionmanager-service.h"
 
 #include <glib/gi18n.h>
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
-struct _SessionsaverManageDialog
+struct _SessionmanagerManageDialog
 {
 	GeditWindow *window;
 	GtkWidget *widget;
@@ -16,13 +16,13 @@ struct _SessionsaverManageDialog
 	GtkWidget *rename_button;
 	GtkWidget *delete_button;
 
-	SessionsaverManageRestoreFunc restore_func;
-	SessionsaverManageRefreshFunc refresh_func;
+	SessionmanagerManageRestoreFunc restore_func;
+	SessionmanagerManageRefreshFunc refresh_func;
 	gpointer user_data;
 };
 
 static GtkWidget *
-sessionsaver_manage_create_session_row (
+sessionmanager_manage_create_session_row (
 	const gchar *session_name
 )
 {
@@ -71,16 +71,16 @@ sessionsaver_manage_create_session_row (
 }
 
 static gboolean
-sessionsaver_manage_populate_list (
-	SessionsaverManageDialog *dialog,
+sessionmanager_manage_populate_list (
+	SessionmanagerManageDialog *dialog,
 	GError                  **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 	guint i;
 	guint named_session_count = 0;
 
-	store = sessionsaver_load_session_store (
+	store = sessionmanager_load_session_store (
 		error
 	);
 
@@ -90,13 +90,13 @@ sessionsaver_manage_populate_list (
 	}
 
 	for (i = 0;
-	     i < sessionsaver_session_store_get_n_sessions (store);
+	     i < sessionmanager_session_store_get_n_sessions (store);
 	     i++)
 	{
-		SessionsaverSession *session;
+		SessionmanagerSession *session;
 		GtkWidget *row;
 
-		session = sessionsaver_session_store_get_nth (
+		session = sessionmanager_session_store_get_nth (
 			store,
 			i
 		);
@@ -104,13 +104,13 @@ sessionsaver_manage_populate_list (
 		if (session == NULL ||
 		    g_ascii_strcasecmp (
 			    session->name,
-			    SESSIONSAVER_PREVIOUS_SESSION_NAME
+			    SESSIONMANAGER_PREVIOUS_SESSION_NAME
 		    ) == 0)
 		{
 			continue;
 		}
 
-		row = sessionsaver_manage_create_session_row (
+		row = sessionmanager_manage_create_session_row (
 			session->name
 		);
 
@@ -122,7 +122,7 @@ sessionsaver_manage_populate_list (
 		named_session_count++;
 	}
 
-	sessionsaver_session_store_free (
+	sessionmanager_session_store_free (
 		store
 	);
 
@@ -131,7 +131,7 @@ sessionsaver_manage_populate_list (
 		GtkWidget *label;
 
 		label = gtk_label_new (
-			sessionsaver_translate ("No saved sessions.", "保存済みのセッションはありません。")
+			sessionmanager_translate ("No saved sessions.", "保存済みのセッションはありません。")
 		);
 
 		gtk_widget_set_sensitive (
@@ -154,8 +154,8 @@ sessionsaver_manage_populate_list (
 }
 
 static gchar *
-sessionsaver_manage_get_selected_session_name (
-	SessionsaverManageDialog *dialog
+sessionmanager_manage_get_selected_session_name (
+	SessionmanagerManageDialog *dialog
 )
 {
 	GtkListBoxRow *row;
@@ -187,13 +187,13 @@ sessionsaver_manage_get_selected_session_name (
 }
 
 static void
-sessionsaver_manage_restore_clicked (
+sessionmanager_manage_restore_clicked (
 	GtkButton *button,
 	gpointer   user_data
 )
 {
-	SessionsaverManageDialog *dialog;
-	SessionsaverManageRestoreFunc restore_func;
+	SessionmanagerManageDialog *dialog;
+	SessionmanagerManageRestoreFunc restore_func;
 	GeditWindow *window;
 	gpointer callback_data;
 	GtkWidget *widget;
@@ -204,7 +204,7 @@ sessionsaver_manage_restore_clicked (
 	dialog = user_data;
 
 	session_name =
-		sessionsaver_manage_get_selected_session_name (
+		sessionmanager_manage_get_selected_session_name (
 			dialog
 		);
 
@@ -243,8 +243,8 @@ sessionsaver_manage_restore_clicked (
 }
 
 static void
-sessionsaver_manage_show_message (
-	SessionsaverManageDialog *dialog,
+sessionmanager_manage_show_message (
+	SessionmanagerManageDialog *dialog,
 	GtkMessageType            type,
 	const gchar              *primary_text,
 	const gchar              *secondary_text
@@ -281,12 +281,12 @@ sessionsaver_manage_show_message (
 }
 
 static void
-sessionsaver_manage_delete_clicked (
+sessionmanager_manage_delete_clicked (
 	GtkButton *button,
 	gpointer   user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 	GtkWidget *confirm_dialog;
 	GtkListBoxRow *row;
 	gchar *session_name;
@@ -298,7 +298,7 @@ sessionsaver_manage_delete_clicked (
 	dialog = user_data;
 
 	session_name =
-		sessionsaver_manage_get_selected_session_name (
+		sessionmanager_manage_get_selected_session_name (
 			dialog
 		);
 
@@ -310,7 +310,7 @@ sessionsaver_manage_delete_clicked (
 	{
 		gchar *message;
 
-		message = sessionsaver_format_delete_session (
+		message = sessionmanager_format_delete_session (
 			session_name
 		);
 
@@ -332,7 +332,7 @@ sessionsaver_manage_delete_clicked (
 	gtk_message_dialog_format_secondary_text (
 		GTK_MESSAGE_DIALOG (confirm_dialog),
 		"%s",
-		sessionsaver_translate (
+		sessionmanager_translate (
 			"This action cannot be undone.",
 			"この操作は元に戻せません。"
 		)
@@ -340,9 +340,9 @@ sessionsaver_manage_delete_clicked (
 
 	gtk_dialog_add_buttons (
 		GTK_DIALOG (confirm_dialog),
-		sessionsaver_translate ("Cancel", "キャンセル"),
+		sessionmanager_translate ("Cancel", "キャンセル"),
 		GTK_RESPONSE_CANCEL,
-		sessionsaver_translate ("Delete", "削除"),
+		sessionmanager_translate ("Delete", "削除"),
 		GTK_RESPONSE_DELETE_EVENT,
 		NULL
 	);
@@ -369,15 +369,15 @@ sessionsaver_manage_delete_clicked (
 		return;
 	}
 
-	if (!sessionsaver_delete_session (
+	if (!sessionmanager_delete_session (
 		session_name,
 		&error
 	))
 	{
-		sessionsaver_manage_show_message (
+		sessionmanager_manage_show_message (
 			dialog,
 			GTK_MESSAGE_ERROR,
-			sessionsaver_translate ("The session could not be deleted.", "セッションを削除できません。"),
+			sessionmanager_translate ("The session could not be deleted.", "セッションを削除できません。"),
 			error != NULL
 				? error->message
 				: NULL
@@ -433,12 +433,12 @@ sessionsaver_manage_delete_clicked (
 }
 
 static void
-sessionsaver_manage_rename_clicked (
+sessionmanager_manage_rename_clicked (
 	GtkButton *button,
 	gpointer   user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 	GtkWidget *rename_dialog;
 	GtkWidget *content_area;
 	GtkWidget *box;
@@ -456,7 +456,7 @@ sessionsaver_manage_rename_clicked (
 	dialog = user_data;
 
 	old_name =
-		sessionsaver_manage_get_selected_session_name (
+		sessionmanager_manage_get_selected_session_name (
 			dialog
 		);
 
@@ -466,13 +466,13 @@ sessionsaver_manage_rename_clicked (
 	}
 
 	rename_dialog = gtk_dialog_new_with_buttons (
-		sessionsaver_translate ("Rename Session", "セッション名を変更"),
+		sessionmanager_translate ("Rename Session", "セッション名を変更"),
 		GTK_WINDOW (dialog->widget),
 		GTK_DIALOG_MODAL |
 		GTK_DIALOG_DESTROY_WITH_PARENT,
-		sessionsaver_translate ("Cancel", "キャンセル"),
+		sessionmanager_translate ("Cancel", "キャンセル"),
 		GTK_RESPONSE_CANCEL,
-		sessionsaver_translate ("Rename", "名前を変更"),
+		sessionmanager_translate ("Rename", "名前を変更"),
 		GTK_RESPONSE_OK,
 		NULL
 	);
@@ -497,7 +497,7 @@ sessionsaver_manage_rename_clicked (
 	);
 
 	label = gtk_label_new (
-		sessionsaver_translate ("New session name:", "新しいセッション名:")
+		sessionmanager_translate ("New session name:", "新しいセッション名:")
 	);
 
 	gtk_widget_set_halign (
@@ -591,16 +591,16 @@ sessionsaver_manage_rename_clicked (
 		return;
 	}
 
-	if (!sessionsaver_rename_session (
+	if (!sessionmanager_rename_session (
 		old_name,
 		new_name,
 		&error
 	))
 	{
-		sessionsaver_manage_show_message (
+		sessionmanager_manage_show_message (
 			dialog,
 			GTK_MESSAGE_ERROR,
-			sessionsaver_translate ("The session could not be renamed.", "セッション名を変更できません。"),
+			sessionmanager_translate ("The session could not be renamed.", "セッション名を変更できません。"),
 			error != NULL
 				? error->message
 				: NULL
@@ -657,13 +657,13 @@ sessionsaver_manage_rename_clicked (
 }
 
 static gboolean
-sessionsaver_manage_button_pressed (
+sessionmanager_manage_button_pressed (
 	GtkWidget      *widget,
 	GdkEventButton *event,
 	gpointer        user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 	GtkListBoxRow *row;
 
 	if (event->type != GDK_2BUTTON_PRESS ||
@@ -689,7 +689,7 @@ sessionsaver_manage_button_pressed (
 		row
 	);
 
-	sessionsaver_manage_restore_clicked (
+	sessionmanager_manage_restore_clicked (
 		NULL,
 		dialog
 	);
@@ -698,19 +698,19 @@ sessionsaver_manage_button_pressed (
 }
 
 static gboolean
-sessionsaver_manage_key_pressed (
+sessionmanager_manage_key_pressed (
 	GtkWidget   *widget,
 	GdkEventKey *event,
 	gpointer     user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 
 	(void) widget;
 
 	dialog = user_data;
 
-	if (sessionsaver_manage_get_selected_session_name (
+	if (sessionmanager_manage_get_selected_session_name (
 		dialog
 	) == NULL)
 	{
@@ -719,7 +719,7 @@ sessionsaver_manage_key_pressed (
 
 	if (event->keyval == GDK_KEY_F2)
 	{
-		sessionsaver_manage_rename_clicked (
+		sessionmanager_manage_rename_clicked (
 			NULL,
 			dialog
 		);
@@ -730,7 +730,7 @@ sessionsaver_manage_key_pressed (
 	if (event->keyval == GDK_KEY_Return ||
 	    event->keyval == GDK_KEY_KP_Enter)
 	{
-		sessionsaver_manage_restore_clicked (
+		sessionmanager_manage_restore_clicked (
 			NULL,
 			dialog
 		);
@@ -742,13 +742,13 @@ sessionsaver_manage_key_pressed (
 }
 
 static void
-sessionsaver_manage_selection_changed (
+sessionmanager_manage_selection_changed (
 	GtkListBox    *list_box,
 	GtkListBoxRow *row,
 	gpointer       user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 	gboolean has_selection;
 
 	(void) list_box;
@@ -773,8 +773,8 @@ sessionsaver_manage_selection_changed (
 }
 
 static void
-sessionsaver_manage_dialog_free (
-	SessionsaverManageDialog *dialog
+sessionmanager_manage_dialog_free (
+	SessionmanagerManageDialog *dialog
 )
 {
 	if (dialog == NULL)
@@ -793,15 +793,15 @@ sessionsaver_manage_dialog_free (
 	);
 }
 
-SessionsaverManageDialog *
-sessionsaver_manage_dialog_new (
+SessionmanagerManageDialog *
+sessionmanager_manage_dialog_new (
 	GeditWindow                    *window,
-	SessionsaverManageRestoreFunc   restore_func,
-	SessionsaverManageRefreshFunc   refresh_func,
+	SessionmanagerManageRestoreFunc   restore_func,
+	SessionmanagerManageRefreshFunc   refresh_func,
 	gpointer                        user_data
 )
 {
-	SessionsaverManageDialog *dialog;
+	SessionmanagerManageDialog *dialog;
 	GError *error = NULL;
 	GtkWidget *content_area;
 	GtkWidget *box;
@@ -815,7 +815,7 @@ sessionsaver_manage_dialog_new (
 	);
 
 	dialog = g_new0 (
-		SessionsaverManageDialog,
+		SessionmanagerManageDialog,
 		1
 	);
 
@@ -828,7 +828,7 @@ sessionsaver_manage_dialog_new (
 	dialog->user_data = user_data;
 
 	dialog->widget = gtk_dialog_new_with_buttons (
-		sessionsaver_translate ("Session Manager", "セッション管理"),
+		sessionmanager_translate ("Session Manager", "セッション管理"),
 		GTK_WINDOW (window),
 		GTK_DIALOG_MODAL |
 		GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -874,19 +874,19 @@ sessionsaver_manage_dialog_new (
 	);
 
 	dialog->restore_button = gtk_button_new_with_mnemonic (
-		sessionsaver_translate ("Restore", "復元")
+		sessionmanager_translate ("Restore", "復元")
 	);
 
 	dialog->rename_button = gtk_button_new_with_mnemonic (
-		sessionsaver_translate ("Rename", "名前を変更")
+		sessionmanager_translate ("Rename", "名前を変更")
 	);
 
 	dialog->delete_button = gtk_button_new_with_mnemonic (
-		sessionsaver_translate ("Delete", "削除")
+		sessionmanager_translate ("Delete", "削除")
 	);
 
 	close_button = gtk_button_new_with_mnemonic (
-		sessionsaver_translate ("Close", "閉じる")
+		sessionmanager_translate ("Close", "閉じる")
 	);
 
 	gtk_widget_set_sensitive (
@@ -972,42 +972,42 @@ sessionsaver_manage_dialog_new (
 	g_signal_connect (
 		dialog->list_box,
 		"row-selected",
-		G_CALLBACK (sessionsaver_manage_selection_changed),
+		G_CALLBACK (sessionmanager_manage_selection_changed),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->restore_button,
 		"clicked",
-		G_CALLBACK (sessionsaver_manage_restore_clicked),
+		G_CALLBACK (sessionmanager_manage_restore_clicked),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->rename_button,
 		"clicked",
-		G_CALLBACK (sessionsaver_manage_rename_clicked),
+		G_CALLBACK (sessionmanager_manage_rename_clicked),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->delete_button,
 		"clicked",
-		G_CALLBACK (sessionsaver_manage_delete_clicked),
+		G_CALLBACK (sessionmanager_manage_delete_clicked),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->list_box,
 		"button-press-event",
-		G_CALLBACK (sessionsaver_manage_button_pressed),
+		G_CALLBACK (sessionmanager_manage_button_pressed),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->widget,
 		"key-press-event",
-		G_CALLBACK (sessionsaver_manage_key_pressed),
+		G_CALLBACK (sessionmanager_manage_key_pressed),
 		dialog
 	);
 
@@ -1018,13 +1018,13 @@ sessionsaver_manage_dialog_new (
 		dialog->widget
 	);
 
-	if (!sessionsaver_manage_populate_list (
+	if (!sessionmanager_manage_populate_list (
 		dialog,
 		&error
 	))
 	{
 		g_warning (
-			"sessionsaver: Saved sessions could not be loaded: %s",
+			"sessionmanager: Saved sessions could not be loaded: %s",
 			error != NULL
 				? error->message
 				: "unknown error"
@@ -1037,18 +1037,18 @@ sessionsaver_manage_dialog_new (
 
 	g_object_set_data_full (
 		G_OBJECT (dialog->widget),
-		"sessionsaver-manage-dialog",
+		"sessionmanager-manage-dialog",
 		dialog,
 		(GDestroyNotify)
-			sessionsaver_manage_dialog_free
+			sessionmanager_manage_dialog_free
 	);
 
 	return dialog;
 }
 
 GtkWidget *
-sessionsaver_manage_dialog_get_widget (
-	SessionsaverManageDialog *dialog
+sessionmanager_manage_dialog_get_widget (
+	SessionmanagerManageDialog *dialog
 )
 {
 	g_return_val_if_fail (
@@ -1060,8 +1060,8 @@ sessionsaver_manage_dialog_get_widget (
 }
 
 void
-sessionsaver_manage_dialog_present (
-	SessionsaverManageDialog *dialog
+sessionmanager_manage_dialog_present (
+	SessionmanagerManageDialog *dialog
 )
 {
 	g_return_if_fail (
@@ -1078,8 +1078,8 @@ sessionsaver_manage_dialog_present (
 }
 
 void
-sessionsaver_manage_dialog_destroy (
-	SessionsaverManageDialog *dialog
+sessionmanager_manage_dialog_destroy (
+	SessionmanagerManageDialog *dialog
 )
 {
 	g_return_if_fail (

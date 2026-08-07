@@ -1,15 +1,15 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-xml.h"
+#include "sessionmanager-xml.h"
 
 typedef struct
 {
-	SessionsaverSessionStore *store;
-	SessionsaverSession *current_session;
-} SessionsaverXmlParserData;
+	SessionmanagerSessionStore *store;
+	SessionmanagerSession *current_session;
+} SessionmanagerXmlParserData;
 
 static const gchar *
-sessionsaver_xml_find_attribute (
+sessionmanager_xml_find_attribute (
 	const gchar       **attribute_names,
 	const gchar       **attribute_values,
 	const gchar        *name
@@ -34,7 +34,7 @@ sessionsaver_xml_find_attribute (
 }
 
 static void
-sessionsaver_xml_start_element (
+sessionmanager_xml_start_element (
 	GMarkupParseContext  *context,
 	const gchar          *element_name,
 	const gchar         **attribute_names,
@@ -43,7 +43,7 @@ sessionsaver_xml_start_element (
 	GError              **error
 )
 {
-	SessionsaverXmlParserData *data = user_data;
+	SessionmanagerXmlParserData *data = user_data;
 
 	(void) context;
 
@@ -56,7 +56,7 @@ sessionsaver_xml_start_element (
 	{
 		const gchar *name;
 
-		name = sessionsaver_xml_find_attribute (
+		name = sessionmanager_xml_find_attribute (
 			attribute_names,
 			attribute_values,
 			"name"
@@ -74,9 +74,9 @@ sessionsaver_xml_start_element (
 			return;
 		}
 
-		data->current_session = sessionsaver_session_new (name);
+		data->current_session = sessionmanager_session_new (name);
 
-		sessionsaver_session_store_add (
+		sessionmanager_session_store_add (
 			data->store,
 			data->current_session
 		);
@@ -100,7 +100,7 @@ sessionsaver_xml_start_element (
 			return;
 		}
 
-		path = sessionsaver_xml_find_attribute (
+		path = sessionmanager_xml_find_attribute (
 			attribute_names,
 			attribute_values,
 			"path"
@@ -118,7 +118,7 @@ sessionsaver_xml_start_element (
 			return;
 		}
 
-		sessionsaver_session_add_file (
+		sessionmanager_session_add_file (
 			data->current_session,
 			path
 		);
@@ -136,14 +136,14 @@ sessionsaver_xml_start_element (
 }
 
 static void
-sessionsaver_xml_end_element (
+sessionmanager_xml_end_element (
 	GMarkupParseContext *context,
 	const gchar         *element_name,
 	gpointer             user_data,
 	GError             **error
 )
 {
-	SessionsaverXmlParserData *data = user_data;
+	SessionmanagerXmlParserData *data = user_data;
 
 	(void) context;
 	(void) error;
@@ -155,8 +155,8 @@ sessionsaver_xml_end_element (
 }
 
 gboolean
-sessionsaver_xml_save (
-	const SessionsaverSessionStore *store,
+sessionmanager_xml_save (
+	const SessionmanagerSessionStore *store,
 	const gchar                    *path,
 	GError                        **error
 )
@@ -174,7 +174,7 @@ sessionsaver_xml_save (
 
 	for (i = 0; i < store->sessions->len; i++)
 	{
-		SessionsaverSession *session;
+		SessionmanagerSession *session;
 		gchar *escaped_name;
 		guint j;
 
@@ -247,19 +247,19 @@ sessionsaver_xml_save (
 	return TRUE;
 }
 
-SessionsaverSessionStore *
-sessionsaver_xml_load (
+SessionmanagerSessionStore *
+sessionmanager_xml_load (
 	const gchar *path,
 	GError     **error
 )
 {
 	gchar *contents = NULL;
 	gsize length = 0;
-	SessionsaverSessionStore *store;
-	SessionsaverXmlParserData data;
+	SessionmanagerSessionStore *store;
+	SessionmanagerXmlParserData data;
 	GMarkupParser parser = {
-		sessionsaver_xml_start_element,
-		sessionsaver_xml_end_element,
+		sessionmanager_xml_start_element,
+		sessionmanager_xml_end_element,
 		NULL,
 		NULL,
 		NULL
@@ -278,7 +278,7 @@ sessionsaver_xml_load (
 		return NULL;
 	}
 
-	store = sessionsaver_session_store_new ();
+	store = sessionmanager_session_store_new ();
 
 	data.store = store;
 	data.current_session = NULL;
@@ -303,7 +303,7 @@ sessionsaver_xml_load (
 	{
 		g_markup_parse_context_free (context);
 		g_free (contents);
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 
 		return NULL;
 	}

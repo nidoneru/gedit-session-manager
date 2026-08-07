@@ -1,14 +1,14 @@
-# Session Saver XML Format
+# Session Manager XML Format
 
 ## File name
 
-Session Saver stores its data in:
+Session Manager stores its data in:
 
     saved-sessions.xml
 
-## Format written by Session Saver
+## Format written by Session Manager
 
-Session Saver writes an XML document with an XML declaration and one
+Session Manager writes an XML document with an XML declaration and one
 `saved-sessions` root element.
 
 Example:
@@ -28,11 +28,11 @@ Example:
 
 The `name` attribute is required and must not be empty.
 
-Session names are expected to be unique. Normal Session Saver operations
+Session names are expected to be unique. Normal Session Manager operations
 preserve this condition, but the XML parser does not reject duplicate names
 in a manually edited file.
 
-For normal Session Saver operations, session names are compared
+For normal Session Manager operations, session names are compared
 case-insensitively for ASCII letters. For example, `Work`, `work`, and
 `WORK` are treated as the same session name.
 

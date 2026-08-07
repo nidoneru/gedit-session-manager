@@ -1,12 +1,12 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "gedit-sessionsaver-window-activatable.h"
-#include "gedit-sessionsaver-app-activatable.h"
+#include "gedit-sessionmanager-window-activatable.h"
+#include "gedit-sessionmanager-app-activatable.h"
 
-#include "sessionsaver-manage-dialog.h"
-#include "sessionsaver-save-dialog.h"
-#include "sessionsaver-service.h"
-#include "sessionsaver-window.h"
+#include "sessionmanager-manage-dialog.h"
+#include "sessionmanager-save-dialog.h"
+#include "sessionmanager-service.h"
+#include "sessionmanager-window.h"
 
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
@@ -16,9 +16,9 @@
 #include <gedit/gedit-window.h>
 #include <gedit/gedit-window-activatable.h>
 #include <gtksourceview/gtksource.h>
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
-struct _GeditSessionsaverWindowActivatablePrivate
+struct _GeditSessionmanagerWindowActivatablePrivate
 {
 	GeditWindow *window;
 
@@ -53,12 +53,12 @@ peas_register_types (
 );
 
 G_DEFINE_DYNAMIC_TYPE_EXTENDED (
-	GeditSessionsaverWindowActivatable,
-	gedit_sessionsaver_window_activatable,
+	GeditSessionmanagerWindowActivatable,
+	gedit_sessionmanager_window_activatable,
 	G_TYPE_OBJECT,
 	0,
 	G_ADD_PRIVATE_DYNAMIC (
-		GeditSessionsaverWindowActivatable
+		GeditSessionmanagerWindowActivatable
 	)
 	G_IMPLEMENT_INTERFACE_DYNAMIC (
 		GEDIT_TYPE_WINDOW_ACTIVATABLE,
@@ -67,59 +67,59 @@ G_DEFINE_DYNAMIC_TYPE_EXTENDED (
 )
 
 static void
-sessionsaver_restore_session_finished (
+sessionmanager_restore_session_finished (
 	GeditWindow  *window,
 	GAsyncResult *result,
 	gpointer      user_data
 );
 
 static void
-sessionsaver_refresh_app_menu (void);
+sessionmanager_refresh_app_menu (void);
 
 static void
-sessionsaver_manage_restore_requested (
+sessionmanager_manage_restore_requested (
 	GeditWindow *window,
 	const gchar *session_name,
 	gpointer     user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
-	sessionsaver_replace_with_session_async (
+	sessionmanager_replace_with_session_async (
 		window,
 		session_name,
 		NULL,
 		(GAsyncReadyCallback)
-			sessionsaver_restore_session_finished,
+			sessionmanager_restore_session_finished,
 		self
 	);
 }
 
 static void
-sessionsaver_manage_refresh_requested (
+sessionmanager_manage_refresh_requested (
 	gpointer user_data
 )
 {
 	(void) user_data;
 
-	sessionsaver_refresh_app_menu ();
+	sessionmanager_refresh_app_menu ();
 }
 
 static void
-sessionsaver_refresh_app_menu (void)
+sessionmanager_refresh_app_menu (void)
 {
-	GeditSessionsaverAppActivatable *app_activatable;
+	GeditSessionmanagerAppActivatable *app_activatable;
 
 	app_activatable =
-		gedit_sessionsaver_app_activatable_get_instance ();
+		gedit_sessionmanager_app_activatable_get_instance ();
 
 	if (app_activatable != NULL)
 	{
-		gedit_sessionsaver_app_activatable_refresh_menu (
+		gedit_sessionmanager_app_activatable_refresh_menu (
 			app_activatable
 		);
 	}
@@ -128,22 +128,22 @@ sessionsaver_refresh_app_menu (void)
 /* ---- Previous Session の復元 ---- */
 
 static void
-sessionsaver_restore_previous_session (
+sessionmanager_restore_previous_session (
 	GeditWindow *window
 )
 {
 	GError *error = NULL;
 
-	if (!sessionsaver_restore_session (
+	if (!sessionmanager_restore_session (
 		window,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME,
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME,
 		&error
 	))
 	{
 		if (error != NULL)
 		{
 			g_warning (
-				"sessionsaver: Previous Sessionの復元に失敗しました: %s",
+				"sessionmanager: Previous Sessionの復元に失敗しました: %s",
 				error->message
 			);
 
@@ -155,13 +155,13 @@ sessionsaver_restore_previous_session (
 /* ---- Previous Session の遅延復元 ---- */
 
 static gboolean
-sessionsaver_restore_previous_idle (
+sessionmanager_restore_previous_idle (
 	gpointer user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -169,7 +169,7 @@ sessionsaver_restore_previous_idle (
 
 	if (self->priv->window != NULL)
 	{
-		sessionsaver_restore_previous_session (
+		sessionmanager_restore_previous_session (
 			self->priv->window
 		);
 	}
@@ -180,15 +180,15 @@ sessionsaver_restore_previous_idle (
 /* ---- Previous Session の遅延保存 ---- */
 
 static gboolean
-sessionsaver_save_previous_idle (
+sessionmanager_save_previous_idle (
 	gpointer user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
-	SessionsaverSession *session;
+	GeditSessionmanagerWindowActivatable *self;
+	SessionmanagerSession *session;
 	GError *error = NULL;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -199,9 +199,9 @@ sessionsaver_save_previous_idle (
 		return G_SOURCE_REMOVE;
 	}
 
-	session = sessionsaver_capture_window (
+	session = sessionmanager_capture_window (
 		self->priv->window,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME
 	);
 
 	if (session == NULL)
@@ -210,16 +210,16 @@ sessionsaver_save_previous_idle (
 	}
 
 	/*
-	 * sessionsaver_save_session() は、成功・失敗にかかわらず
+	 * sessionmanager_save_session() は、成功・失敗にかかわらず
 	 * sessionの所有権を引き取る。
 	 */
-	if (!sessionsaver_save_session (
+	if (!sessionmanager_save_session (
 		session,
 		&error
 	))
 	{
 		g_warning (
-			"sessionsaver: Previous Sessionの保存に失敗しました: %s",
+			"sessionmanager: Previous Sessionの保存に失敗しました: %s",
 			error != NULL ? error->message : "unknown error"
 		);
 
@@ -230,8 +230,8 @@ sessionsaver_save_previous_idle (
 }
 
 static void
-sessionsaver_schedule_save (
-	GeditSessionsaverWindowActivatable *self
+sessionmanager_schedule_save (
+	GeditSessionmanagerWindowActivatable *self
 )
 {
 	if (self->priv->save_idle_id != 0)
@@ -241,7 +241,7 @@ sessionsaver_schedule_save (
 
 	self->priv->save_idle_id = g_idle_add_full (
 		G_PRIORITY_DEFAULT_IDLE,
-		sessionsaver_save_previous_idle,
+		sessionmanager_save_previous_idle,
 		g_object_ref (self),
 		g_object_unref
 	);
@@ -256,21 +256,21 @@ on_document_location_changed (
 	gpointer       user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
 	(void) source_file;
 	(void) pspec;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
-	sessionsaver_schedule_save (self);
+	sessionmanager_schedule_save (self);
 }
 
 static void
-sessionsaver_watch_document (
-	GeditSessionsaverWindowActivatable *self,
+sessionmanager_watch_document (
+	GeditSessionmanagerWindowActivatable *self,
 	GeditDocument                      *document
 )
 {
@@ -307,23 +307,23 @@ on_tab_added (
 	gpointer     user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 	GeditDocument *document;
 
 	(void) window;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
 	document = gedit_tab_get_document (tab);
 
-	sessionsaver_watch_document (
+	sessionmanager_watch_document (
 		self,
 		document
 	);
 
-	sessionsaver_schedule_save (self);
+	sessionmanager_schedule_save (self);
 }
 
 static void
@@ -333,25 +333,25 @@ on_tab_removed (
 	gpointer     user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
 	(void) window;
 	(void) tab;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
 	/*
 	 * シグナル中には保存せず、タブ構成の変更が完了したあとに保存する。
 	 */
-	sessionsaver_schedule_save (self);
+	sessionmanager_schedule_save (self);
 }
 
 /* ---- 名前付きセッションの保存アクション ---- */
 
 static void
-sessionsaver_message_dialog_response (
+sessionmanager_message_dialog_response (
 	GtkDialog *dialog,
 	gint       response_id,
 	gpointer   user_data
@@ -366,7 +366,7 @@ sessionsaver_message_dialog_response (
 }
 
 static void
-sessionsaver_show_message (
+sessionmanager_show_message (
 	GeditWindow    *window,
 	GtkMessageType  type,
 	const gchar    *primary_text,
@@ -397,7 +397,7 @@ sessionsaver_show_message (
 	g_signal_connect (
 		dialog,
 		"response",
-		G_CALLBACK (sessionsaver_message_dialog_response),
+		G_CALLBACK (sessionmanager_message_dialog_response),
 		NULL
 	);
 
@@ -411,12 +411,12 @@ on_restore_named_session_action (
 	gpointer       user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 	const gchar *session_name;
 
 	(void) action;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -430,31 +430,31 @@ on_restore_named_session_action (
 		NULL
 	);
 
-	sessionsaver_replace_with_session_async (
+	sessionmanager_replace_with_session_async (
 		self->priv->window,
 		session_name,
 		NULL,
 		(GAsyncReadyCallback)
-			sessionsaver_restore_session_finished,
+			sessionmanager_restore_session_finished,
 		self
 	);
 }
 
 static void
-sessionsaver_restore_session_finished (
+sessionmanager_restore_session_finished (
 	GeditWindow *window,
 	GAsyncResult *result,
 	gpointer      user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 	GError *error = NULL;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
-	if (!sessionsaver_replace_with_session_finish (
+	if (!sessionmanager_replace_with_session_finish (
 		window,
 		result,
 		&error
@@ -465,10 +465,10 @@ sessionsaver_restore_session_finished (
 		 * エラー内容はgedit側でも表示されるため、ここでは
 		 * セッション切り替えが完了しなかったことだけ通知する。
 		 */
-		sessionsaver_show_message (
+		sessionmanager_show_message (
 			self->priv->window,
 			GTK_MESSAGE_WARNING,
-			sessionsaver_translate ("The session could not be restored.", "セッションを復元できません。"),
+			sessionmanager_translate ("The session could not be restored.", "セッションを復元できません。"),
 			error != NULL
 				? error->message
 				: NULL
@@ -479,17 +479,17 @@ sessionsaver_restore_session_finished (
 }
 
 static void
-sessionsaver_manage_dialog_destroyed (
+sessionmanager_manage_dialog_destroyed (
 	GtkWidget *dialog,
 	gpointer   user_data
 );
 
 static void
-sessionsaver_manage_dialog_show (
-	GeditSessionsaverWindowActivatable *self
+sessionmanager_manage_dialog_show (
+	GeditSessionmanagerWindowActivatable *self
 )
 {
-	SessionsaverManageDialog *manage_dialog;
+	SessionmanagerManageDialog *manage_dialog;
 	GtkWidget *widget;
 
 	if (self->priv->manage_sessions_dialog != NULL)
@@ -501,10 +501,10 @@ sessionsaver_manage_dialog_show (
 		return;
 	}
 
-	manage_dialog = sessionsaver_manage_dialog_new (
+	manage_dialog = sessionmanager_manage_dialog_new (
 		self->priv->window,
-		sessionsaver_manage_restore_requested,
-		sessionsaver_manage_refresh_requested,
+		sessionmanager_manage_restore_requested,
+		sessionmanager_manage_refresh_requested,
 		self
 	);
 
@@ -513,7 +513,7 @@ sessionsaver_manage_dialog_show (
 		return;
 	}
 
-	widget = sessionsaver_manage_dialog_get_widget (
+	widget = sessionmanager_manage_dialog_get_widget (
 		manage_dialog
 	);
 
@@ -522,7 +522,7 @@ sessionsaver_manage_dialog_show (
 	g_signal_connect (
 		widget,
 		"destroy",
-		G_CALLBACK (sessionsaver_manage_dialog_destroyed),
+		G_CALLBACK (sessionmanager_manage_dialog_destroyed),
 		self
 	);
 
@@ -538,29 +538,29 @@ on_manage_sessions_action (
 	gpointer       user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
 	(void) action;
 	(void) parameter;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
-	sessionsaver_manage_dialog_show (
+	sessionmanager_manage_dialog_show (
 		self
 	);
 }
 
 static void
-sessionsaver_manage_dialog_destroyed (
+sessionmanager_manage_dialog_destroyed (
 	GtkWidget *dialog,
 	gpointer   user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -571,14 +571,14 @@ sessionsaver_manage_dialog_destroyed (
 }
 
 static void
-sessionsaver_save_dialog_destroyed (
+sessionmanager_save_dialog_destroyed (
 	GtkWidget *dialog,
 	gpointer   user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -595,14 +595,14 @@ on_save_session_action (
 	gpointer       user_data
 )
 {
-	GeditSessionsaverWindowActivatable *self;
-	SessionsaverSaveDialog *save_dialog;
+	GeditSessionmanagerWindowActivatable *self;
+	SessionmanagerSaveDialog *save_dialog;
 	GtkWidget *widget;
 
 	(void) action;
 	(void) parameter;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		user_data
 	);
 
@@ -615,9 +615,9 @@ on_save_session_action (
 		return;
 	}
 
-	save_dialog = sessionsaver_save_dialog_new (
+	save_dialog = sessionmanager_save_dialog_new (
 		self->priv->window,
-		sessionsaver_manage_refresh_requested,
+		sessionmanager_manage_refresh_requested,
 		self
 	);
 
@@ -626,7 +626,7 @@ on_save_session_action (
 		return;
 	}
 
-	widget = sessionsaver_save_dialog_get_widget (
+	widget = sessionmanager_save_dialog_get_widget (
 		save_dialog
 	);
 
@@ -635,7 +635,7 @@ on_save_session_action (
 	g_signal_connect (
 		widget,
 		"destroy",
-		G_CALLBACK (sessionsaver_save_dialog_destroyed),
+		G_CALLBACK (sessionmanager_save_dialog_destroyed),
 		self
 	);
 
@@ -648,16 +648,16 @@ on_save_session_action (
 /* ---- GObject ---- */
 
 static void
-gedit_sessionsaver_window_activatable_get_property (
+gedit_sessionmanager_window_activatable_get_property (
 	GObject    *object,
 	guint       prop_id,
 	GValue     *value,
 	GParamSpec *pspec
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		object
 	);
 
@@ -683,16 +683,16 @@ gedit_sessionsaver_window_activatable_get_property (
 }
 
 static void
-gedit_sessionsaver_window_activatable_set_property (
+gedit_sessionmanager_window_activatable_set_property (
 	GObject      *object,
 	guint         prop_id,
 	const GValue *value,
 	GParamSpec   *pspec
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		object
 	);
 
@@ -721,13 +721,13 @@ gedit_sessionsaver_window_activatable_set_property (
 }
 
 static void
-gedit_sessionsaver_window_activatable_dispose (
+gedit_sessionmanager_window_activatable_dispose (
 	GObject *object
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		object
 	);
 
@@ -785,13 +785,13 @@ gedit_sessionsaver_window_activatable_dispose (
 	);
 
 	G_OBJECT_CLASS (
-		gedit_sessionsaver_window_activatable_parent_class
+		gedit_sessionmanager_window_activatable_parent_class
 	)->dispose (object);
 }
 
 static void
-gedit_sessionsaver_window_activatable_class_init (
-	GeditSessionsaverWindowActivatableClass *klass
+gedit_sessionmanager_window_activatable_class_init (
+	GeditSessionmanagerWindowActivatableClass *klass
 )
 {
 	GObjectClass *object_class;
@@ -799,13 +799,13 @@ gedit_sessionsaver_window_activatable_class_init (
 	object_class = G_OBJECT_CLASS (klass);
 
 	object_class->get_property =
-		gedit_sessionsaver_window_activatable_get_property;
+		gedit_sessionmanager_window_activatable_get_property;
 
 	object_class->set_property =
-		gedit_sessionsaver_window_activatable_set_property;
+		gedit_sessionmanager_window_activatable_set_property;
 
 	object_class->dispose =
-		gedit_sessionsaver_window_activatable_dispose;
+		gedit_sessionmanager_window_activatable_dispose;
 
 	g_object_class_override_property (
 		object_class,
@@ -815,20 +815,20 @@ gedit_sessionsaver_window_activatable_class_init (
 }
 
 static void
-gedit_sessionsaver_window_activatable_class_finalize (
-	GeditSessionsaverWindowActivatableClass *klass
+gedit_sessionmanager_window_activatable_class_finalize (
+	GeditSessionmanagerWindowActivatableClass *klass
 )
 {
 	(void) klass;
 }
 
 static void
-gedit_sessionsaver_window_activatable_init (
-	GeditSessionsaverWindowActivatable *self
+gedit_sessionmanager_window_activatable_init (
+	GeditSessionmanagerWindowActivatable *self
 )
 {
 	self->priv =
-		gedit_sessionsaver_window_activatable_get_instance_private (
+		gedit_sessionmanager_window_activatable_get_instance_private (
 			self
 		);
 
@@ -846,20 +846,20 @@ gedit_sessionsaver_window_activatable_init (
 /* ---- GeditWindowActivatable ---- */
 
 static void
-gedit_sessionsaver_window_activatable_activate (
+gedit_sessionmanager_window_activatable_activate (
 	GeditWindowActivatable *activatable
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 	GList *documents;
 	GList *item;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		activatable
 	);
 
 	self->priv->save_session_action = g_simple_action_new (
-		"sessionsaver-save-session",
+		"sessionmanager-save-session",
 		NULL
 	);
 
@@ -878,7 +878,7 @@ gedit_sessionsaver_window_activatable_activate (
 
 	self->priv->restore_named_session_action =
 		g_simple_action_new (
-			"sessionsaver-restore-named",
+			"sessionmanager-restore-named",
 			G_VARIANT_TYPE_STRING
 		);
 
@@ -897,7 +897,7 @@ gedit_sessionsaver_window_activatable_activate (
 	);
 
 	self->priv->manage_sessions_action = g_simple_action_new (
-		"sessionsaver-manage-sessions",
+		"sessionmanager-manage-sessions",
 		NULL
 	);
 
@@ -937,7 +937,7 @@ gedit_sessionsaver_window_activatable_activate (
 
 	for (item = documents; item != NULL; item = item->next)
 	{
-		sessionsaver_watch_document (
+		sessionmanager_watch_document (
 			self,
 			GEDIT_DOCUMENT (item->data)
 		);
@@ -947,36 +947,36 @@ gedit_sessionsaver_window_activatable_activate (
 
 	self->priv->restore_idle_id = g_idle_add_full (
 		G_PRIORITY_DEFAULT_IDLE,
-		sessionsaver_restore_previous_idle,
+		sessionmanager_restore_previous_idle,
 		g_object_ref (self),
 		g_object_unref
 	);
 }
 
 static void
-gedit_sessionsaver_window_activatable_deactivate (
+gedit_sessionmanager_window_activatable_deactivate (
 	GeditWindowActivatable *activatable
 )
 {
-	GeditSessionsaverWindowActivatable *self;
+	GeditSessionmanagerWindowActivatable *self;
 
-	self = GEDIT_SESSIONSAVER_WINDOW_ACTIVATABLE (
+	self = GEDIT_SESSIONMANAGER_WINDOW_ACTIVATABLE (
 		activatable
 	);
 
 	g_action_map_remove_action (
 		G_ACTION_MAP (self->priv->window),
-		"sessionsaver-save-session"
+		"sessionmanager-save-session"
 	);
 
 	g_action_map_remove_action (
 		G_ACTION_MAP (self->priv->window),
-		"sessionsaver-restore-named"
+		"sessionmanager-restore-named"
 	);
 
 	g_action_map_remove_action (
 		G_ACTION_MAP (self->priv->window),
-		"sessionsaver-manage-sessions"
+		"sessionmanager-manage-sessions"
 	);
 
 	g_clear_object (
@@ -1036,27 +1036,27 @@ gedit_window_activatable_iface_init (
 )
 {
 	iface->activate =
-		gedit_sessionsaver_window_activatable_activate;
+		gedit_sessionmanager_window_activatable_activate;
 
 	iface->deactivate =
-		gedit_sessionsaver_window_activatable_deactivate;
+		gedit_sessionmanager_window_activatable_deactivate;
 }
 
 /* ---- libpeas ---- */
 
 void
-gedit_sessionsaver_window_activatable_register (
+gedit_sessionmanager_window_activatable_register (
 	PeasObjectModule *module
 )
 {
-	gedit_sessionsaver_window_activatable_register_type (
+	gedit_sessionmanager_window_activatable_register_type (
 		G_TYPE_MODULE (module)
 	);
 
 	peas_object_module_register_extension_type (
 		module,
 		GEDIT_TYPE_WINDOW_ACTIVATABLE,
-		GEDIT_TYPE_SESSIONSAVER_WINDOW_ACTIVATABLE
+		GEDIT_TYPE_SESSIONMANAGER_WINDOW_ACTIVATABLE
 	);
 }
 
@@ -1065,11 +1065,11 @@ peas_register_types (
 	PeasObjectModule *module
 )
 {
-	gedit_sessionsaver_app_activatable_register (
+	gedit_sessionmanager_app_activatable_register (
 		module
 	);
 
-	gedit_sessionsaver_window_activatable_register (
+	gedit_sessionmanager_window_activatable_register (
 		module
 	);
 }

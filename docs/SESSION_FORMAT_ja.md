@@ -1,11 +1,11 @@
-# Session Saver の XML 形式
+# Session Manager の XML 形式
 
-> この文書では、Session Saver がセッション情報を保存する XML 形式について日本語で説明します。
+> この文書では、Session Manager がセッション情報を保存する XML 形式について日本語で説明します。
 > 仕様上の正本は `SESSION_FORMAT.md` です。
 
 ## 保存ファイル
 
-Session Saver のセッション情報は、次のファイルに保存されます。
+Session Manager のセッション情報は、次のファイルに保存されます。
 
 ```text
 saved-sessions.xml
@@ -13,7 +13,7 @@ saved-sessions.xml
 
 ## XML の基本構造
 
-Session Saver が書き出すファイルは、XML 宣言と `saved-sessions` ルート要素で構成されます。
+Session Manager が書き出すファイルは、XML 宣言と `saved-sessions` ルート要素で構成されます。
 
 もっとも単純な形は次のようになります。
 
@@ -38,7 +38,7 @@ Session Saver が書き出すファイルは、XML 宣言と `saved-sessions` �
 
 `name` 属性は必須で、空にはできません。
 
-通常の Session Saver の操作では、同じ名前のセッションが複数作られないようになっています。ただし、XML ファイルを手動で編集して重複するセッション名を記述した場合、現在のパーサーはそれをエラーにはしません。
+通常の Session Manager の操作では、同じ名前のセッションが複数作られないようになっています。ただし、XML ファイルを手動で編集して重複するセッション名を記述した場合、現在のパーサーはそれをエラーにはしません。
 
 また、通常の操作でセッション名を比較するときは、ASCII の英字について大文字と小文字を区別しません。
 
@@ -76,7 +76,7 @@ Session Saver が書き出すファイルは、XML 宣言と `saved-sessions` �
 
 ## Previous Session
 
-`Previous Session` は、Session Saver が自動復元に使用する特別なセッション名です。
+`Previous Session` は、Session Manager が自動復元に使用する特別なセッション名です。
 
 ここには、最後に記録された、開いている保存済み文書の一覧が格納されます。
 

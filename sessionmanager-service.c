@@ -1,13 +1,13 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-service.h"
+#include "sessionmanager-service.h"
 
-#include "sessionsaver-storage.h"
-#include "sessionsaver-window.h"
+#include "sessionmanager-storage.h"
+#include "sessionmanager-window.h"
 
 #include <gedit/gedit-commands.h>
 #include <gedit/gedit-document.h>
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
 typedef struct
 {
@@ -16,11 +16,11 @@ typedef struct
 
 	GList *documents;
 	GList *current;
-} SessionsaverReplaceData;
+} SessionmanagerReplaceData;
 
 static void
-sessionsaver_replace_data_free (
-	SessionsaverReplaceData *data
+sessionmanager_replace_data_free (
+	SessionmanagerReplaceData *data
 )
 {
 	if (data == NULL)
@@ -46,24 +46,24 @@ sessionsaver_replace_data_free (
 }
 
 gboolean
-sessionsaver_save_session (
-	SessionsaverSession *session,
+sessionmanager_save_session (
+	SessionmanagerSession *session,
 	GError             **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 
 	g_return_val_if_fail (session != NULL, FALSE);
 	g_return_val_if_fail (session->name != NULL, FALSE);
 	g_return_val_if_fail (session->name[0] != '\0', FALSE);
 
-	store = sessionsaver_storage_load_or_new (
+	store = sessionmanager_storage_load_or_new (
 		error
 	);
 
 	if (store == NULL)
 	{
-		sessionsaver_session_free (session);
+		sessionmanager_session_free (session);
 		return FALSE;
 	}
 
@@ -71,33 +71,33 @@ sessionsaver_save_session (
 	 * sessionの所有権はSessionStoreへ移る。
 	 * 同名セッションがある場合は置き換える。
 	 */
-	sessionsaver_storage_replace_session (
+	sessionmanager_storage_replace_session (
 		store,
 		session
 	);
 
-	if (!sessionsaver_storage_save (
+	if (!sessionmanager_storage_save (
 		store,
 		error
 	))
 	{
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	sessionsaver_session_store_free (store);
+	sessionmanager_session_store_free (store);
 
 	return TRUE;
 }
 
 gboolean
-sessionsaver_rename_session (
+sessionmanager_rename_session (
 	const gchar *old_name,
 	const gchar *new_name,
 	GError     **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 	gboolean renamed;
 
 	g_return_val_if_fail (old_name != NULL, FALSE);
@@ -107,7 +107,7 @@ sessionsaver_rename_session (
 
 	if (g_ascii_strcasecmp (
 		old_name,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME
 	) == 0)
 	{
 		g_set_error (
@@ -122,7 +122,7 @@ sessionsaver_rename_session (
 
 	if (g_ascii_strcasecmp (
 		new_name,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME
 	) == 0)
 	{
 		g_set_error (
@@ -135,7 +135,7 @@ sessionsaver_rename_session (
 		return FALSE;
 	}
 
-	store = sessionsaver_storage_load (
+	store = sessionmanager_storage_load (
 		error
 	);
 
@@ -145,7 +145,7 @@ sessionsaver_rename_session (
 		return FALSE;
 	}
 
-	renamed = sessionsaver_session_store_rename (
+	renamed = sessionmanager_session_store_rename (
 		store,
 		old_name,
 		new_name
@@ -156,7 +156,7 @@ sessionsaver_rename_session (
 		{
 			gchar *message;
 
-			message = sessionsaver_format_duplicate_session_name (
+			message = sessionmanager_format_duplicate_session_name (
 				new_name
 			);
 
@@ -173,38 +173,38 @@ sessionsaver_rename_session (
 			);
 		}
 
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	if (!sessionsaver_storage_save (
+	if (!sessionmanager_storage_save (
 		store,
 		error
 	))
 	{
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	sessionsaver_session_store_free (store);
+	sessionmanager_session_store_free (store);
 
 	return TRUE;
 }
 
 gboolean
-sessionsaver_delete_session (
+sessionmanager_delete_session (
 	const gchar *name,
 	GError     **error
 )
 {
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 
 	g_return_val_if_fail (name != NULL, FALSE);
 	g_return_val_if_fail (name[0] != '\0', FALSE);
 
 	if (g_ascii_strcasecmp (
 		name,
-		SESSIONSAVER_PREVIOUS_SESSION_NAME
+		SESSIONMANAGER_PREVIOUS_SESSION_NAME
 	) == 0)
 	{
 		g_set_error (
@@ -217,7 +217,7 @@ sessionsaver_delete_session (
 		return FALSE;
 	}
 
-	store = sessionsaver_storage_load (
+	store = sessionmanager_storage_load (
 		error
 	);
 
@@ -226,7 +226,7 @@ sessionsaver_delete_session (
 		return FALSE;
 	}
 
-	if (!sessionsaver_session_store_remove (
+	if (!sessionmanager_session_store_remove (
 		store,
 		name
 	))
@@ -239,48 +239,48 @@ sessionsaver_delete_session (
 			name
 		);
 
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	if (!sessionsaver_storage_save (
+	if (!sessionmanager_storage_save (
 		store,
 		error
 	))
 	{
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	sessionsaver_session_store_free (store);
+	sessionmanager_session_store_free (store);
 
 	return TRUE;
 }
 
-SessionsaverSessionStore *
-sessionsaver_load_session_store (
+SessionmanagerSessionStore *
+sessionmanager_load_session_store (
 	GError **error
 )
 {
-	return sessionsaver_storage_load (error);
+	return sessionmanager_storage_load (error);
 }
 
 gboolean
-sessionsaver_restore_session (
+sessionmanager_restore_session (
 	GeditWindow *window,
 	const gchar *name,
 	GError     **error
 )
 {
-	SessionsaverSessionStore *store;
-	SessionsaverSession *session;
+	SessionmanagerSessionStore *store;
+	SessionmanagerSession *session;
 	gboolean restored;
 
 	g_return_val_if_fail (GEDIT_IS_WINDOW (window), FALSE);
 	g_return_val_if_fail (name != NULL, FALSE);
 	g_return_val_if_fail (name[0] != '\0', FALSE);
 
-	store = sessionsaver_storage_load (
+	store = sessionmanager_storage_load (
 		error
 	);
 
@@ -289,7 +289,7 @@ sessionsaver_restore_session (
 		return FALSE;
 	}
 
-	session = sessionsaver_session_store_find (
+	session = sessionmanager_session_store_find (
 		store,
 		name
 	);
@@ -304,34 +304,34 @@ sessionsaver_restore_session (
 			name
 		);
 
-		sessionsaver_session_store_free (store);
+		sessionmanager_session_store_free (store);
 		return FALSE;
 	}
 
-	restored = sessionsaver_restore_window (
+	restored = sessionmanager_restore_window (
 		window,
 		session
 	);
 
-	sessionsaver_session_store_free (store);
+	sessionmanager_session_store_free (store);
 
 	return restored;
 }
 
 static void
-sessionsaver_replace_continue (
+sessionmanager_replace_continue (
 	GTask *task
 );
 
 static void
-sessionsaver_replace_document_saved (
+sessionmanager_replace_document_saved (
 	GeditDocument *document,
 	GAsyncResult  *result,
 	gpointer       user_data
 )
 {
 	GTask *task;
-	SessionsaverReplaceData *data;
+	SessionmanagerReplaceData *data;
 
 	task = G_TASK (user_data);
 	data = g_task_get_task_data (task);
@@ -356,17 +356,17 @@ sessionsaver_replace_document_saved (
 		data->current
 	);
 
-	sessionsaver_replace_continue (
+	sessionmanager_replace_continue (
 		task
 	);
 }
 
 static void
-sessionsaver_replace_continue (
+sessionmanager_replace_continue (
 	GTask *task
 )
 {
-	SessionsaverReplaceData *data;
+	SessionmanagerReplaceData *data;
 
 	data = g_task_get_task_data (task);
 
@@ -400,7 +400,7 @@ sessionsaver_replace_continue (
 			data->window,
 			g_task_get_cancellable (task),
 			(GAsyncReadyCallback)
-				sessionsaver_replace_document_saved,
+				sessionmanager_replace_document_saved,
 			g_object_ref (task)
 		);
 
@@ -426,7 +426,7 @@ sessionsaver_replace_continue (
 	{
 		GError *error = NULL;
 
-		if (!sessionsaver_restore_session (
+		if (!sessionmanager_restore_session (
 			data->window,
 			data->session_name,
 			&error
@@ -451,7 +451,7 @@ sessionsaver_replace_continue (
 }
 
 void
-sessionsaver_replace_with_session_async (
+sessionmanager_replace_with_session_async (
 	GeditWindow         *window,
 	const gchar         *name,
 	GCancellable        *cancellable,
@@ -460,7 +460,7 @@ sessionsaver_replace_with_session_async (
 )
 {
 	GTask *task;
-	SessionsaverReplaceData *data;
+	SessionmanagerReplaceData *data;
 	GList *documents;
 	GList *item;
 
@@ -480,7 +480,7 @@ sessionsaver_replace_with_session_async (
 	);
 
 	data = g_new0 (
-		SessionsaverReplaceData,
+		SessionmanagerReplaceData,
 		1
 	);
 
@@ -514,16 +514,16 @@ sessionsaver_replace_with_session_async (
 		task,
 		data,
 		(GDestroyNotify)
-			sessionsaver_replace_data_free
+			sessionmanager_replace_data_free
 	);
 
-	sessionsaver_replace_continue (
+	sessionmanager_replace_continue (
 		task
 	);
 }
 
 gboolean
-sessionsaver_replace_with_session_finish (
+sessionmanager_replace_with_session_finish (
 	GeditWindow  *window,
 	GAsyncResult *result,
 	GError      **error

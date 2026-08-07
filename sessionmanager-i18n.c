@@ -1,9 +1,9 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
 static gboolean
-sessionsaver_language_is_japanese (
+sessionmanager_language_is_japanese (
 	const gchar *language
 )
 {
@@ -22,7 +22,7 @@ sessionsaver_language_is_japanese (
 }
 
 const gchar *
-sessionsaver_translate (
+sessionmanager_translate (
 	const gchar *english,
 	const gchar *japanese
 )
@@ -37,7 +37,7 @@ sessionsaver_translate (
 
 	for (i = 0; languages[i] != NULL; i++)
 	{
-		if (sessionsaver_language_is_japanese (
+		if (sessionmanager_language_is_japanese (
 			languages[i]
 		))
 		{
@@ -49,13 +49,13 @@ sessionsaver_translate (
 }
 
 gchar *
-sessionsaver_format_restore_session (
+sessionmanager_format_restore_session (
 	const gchar *session_name
 )
 {
 	g_return_val_if_fail (session_name != NULL, NULL);
 
-	if (sessionsaver_translate ("en", "ja")[0] == 'j')
+	if (sessionmanager_translate ("en", "ja")[0] == 'j')
 	{
 		return g_strdup_printf (
 			"セッション「%s」を復元",
@@ -70,13 +70,13 @@ sessionsaver_format_restore_session (
 }
 
 gchar *
-sessionsaver_format_delete_session (
+sessionmanager_format_delete_session (
 	const gchar *session_name
 )
 {
 	g_return_val_if_fail (session_name != NULL, NULL);
 
-	if (sessionsaver_translate ("en", "ja")[0] == 'j')
+	if (sessionmanager_translate ("en", "ja")[0] == 'j')
 	{
 		return g_strdup_printf (
 			"セッション「%s」を削除しますか？",
@@ -92,13 +92,13 @@ sessionsaver_format_delete_session (
 
 
 gchar *
-sessionsaver_format_duplicate_session_name (
+sessionmanager_format_duplicate_session_name (
 	const gchar *session_name
 )
 {
 	g_return_val_if_fail (session_name != NULL, NULL);
 
-	if (sessionsaver_translate ("en", "ja")[0] == 'j')
+	if (sessionmanager_translate ("en", "ja")[0] == 'j')
 	{
 		return g_strdup_printf (
 			"同名のセッションが既に存在します: %s",

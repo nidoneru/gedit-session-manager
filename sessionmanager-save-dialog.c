@@ -1,28 +1,28 @@
 /* SPDX-License-Identifier: GPL-2.0-or-later */
 
-#include "sessionsaver-save-dialog.h"
+#include "sessionmanager-save-dialog.h"
 
-#include "sessionsaver-service.h"
-#include "sessionsaver-session.h"
-#include "sessionsaver-window.h"
+#include "sessionmanager-service.h"
+#include "sessionmanager-session.h"
+#include "sessionmanager-window.h"
 
 #include <glib/gi18n.h>
-#include "sessionsaver-i18n.h"
+#include "sessionmanager-i18n.h"
 
-struct _SessionsaverSaveDialog
+struct _SessionmanagerSaveDialog
 {
 	GeditWindow *window;
 	GtkWidget *widget;
 	GtkWidget *combo;
 	GtkWidget *entry;
 
-	SessionsaverSaveRefreshFunc refresh_func;
+	SessionmanagerSaveRefreshFunc refresh_func;
 	gpointer user_data;
 };
 
 static void
-sessionsaver_save_dialog_show_message (
-	SessionsaverSaveDialog *dialog,
+sessionmanager_save_dialog_show_message (
+	SessionmanagerSaveDialog *dialog,
 	GtkMessageType          type,
 	const gchar            *primary_text,
 	const gchar            *secondary_text
@@ -59,12 +59,12 @@ sessionsaver_save_dialog_show_message (
 }
 
 static void
-sessionsaver_save_dialog_entry_changed (
+sessionmanager_save_dialog_entry_changed (
 	GtkEditable *editable,
 	gpointer     user_data
 )
 {
-	SessionsaverSaveDialog *dialog;
+	SessionmanagerSaveDialog *dialog;
 	gchar *name;
 	gboolean valid;
 
@@ -84,7 +84,7 @@ sessionsaver_save_dialog_entry_changed (
 		name[0] != '\0' &&
 		g_ascii_strcasecmp (
 			name,
-			SESSIONSAVER_PREVIOUS_SESSION_NAME
+			SESSIONMANAGER_PREVIOUS_SESSION_NAME
 		) != 0;
 
 	gtk_dialog_set_response_sensitive (
@@ -99,20 +99,20 @@ sessionsaver_save_dialog_entry_changed (
 }
 
 static void
-sessionsaver_save_dialog_response (
+sessionmanager_save_dialog_response (
 	GtkDialog *widget,
 	gint       response_id,
 	gpointer   user_data
 )
 {
-	SessionsaverSaveDialog *dialog;
+	SessionmanagerSaveDialog *dialog;
 
 	dialog = user_data;
 
 	if (response_id == GTK_RESPONSE_OK)
 	{
 		gchar *name;
-		SessionsaverSession *session;
+		SessionmanagerSession *session;
 		GError *error = NULL;
 
 		name = g_strdup (
@@ -131,14 +131,14 @@ sessionsaver_save_dialog_response (
 		 */
 		if (g_ascii_strcasecmp (
 			name,
-			SESSIONSAVER_PREVIOUS_SESSION_NAME
+			SESSIONMANAGER_PREVIOUS_SESSION_NAME
 		) == 0)
 		{
-			sessionsaver_save_dialog_show_message (
+			sessionmanager_save_dialog_show_message (
 				dialog,
 				GTK_MESSAGE_ERROR,
-				sessionsaver_translate ("This session name is reserved.", "このセッション名は予約されています。"),
-				sessionsaver_translate ("Choose a different name.", "別の名前を指定してください。")
+				sessionmanager_translate ("This session name is reserved.", "このセッション名は予約されています。"),
+				sessionmanager_translate ("Choose a different name.", "別の名前を指定してください。")
 			);
 
 			g_free (
@@ -148,7 +148,7 @@ sessionsaver_save_dialog_response (
 			return;
 		}
 
-		session = sessionsaver_capture_window (
+		session = sessionmanager_capture_window (
 			dialog->window,
 			name
 		);
@@ -156,14 +156,14 @@ sessionsaver_save_dialog_response (
 		if (session == NULL ||
 		    session->files->len == 0)
 		{
-			sessionsaver_session_free (
+			sessionmanager_session_free (
 				session
 			);
 
-			sessionsaver_save_dialog_show_message (
+			sessionmanager_save_dialog_show_message (
 				dialog,
 				GTK_MESSAGE_INFO,
-				sessionsaver_translate ("There are no saved documents to include.", "保存できる文書はありません。"),
+				sessionmanager_translate ("There are no saved documents to include.", "保存できる文書はありません。"),
 				NULL
 			);
 
@@ -174,18 +174,18 @@ sessionsaver_save_dialog_response (
 			return;
 		}
 
-		if (!sessionsaver_save_session (
+		if (!sessionmanager_save_session (
 			session,
 			&error
 		))
 		{
-			sessionsaver_save_dialog_show_message (
+			sessionmanager_save_dialog_show_message (
 				dialog,
 				GTK_MESSAGE_ERROR,
-				sessionsaver_translate ("The session could not be saved.", "セッションを保存できません。"),
+				sessionmanager_translate ("The session could not be saved.", "セッションを保存できません。"),
 				error != NULL
 					? error->message
-					: sessionsaver_translate ("Unknown error", "不明なエラー")
+					: sessionmanager_translate ("Unknown error", "不明なエラー")
 			);
 
 			g_clear_error (
@@ -200,14 +200,14 @@ sessionsaver_save_dialog_response (
 		}
 
 		{
-			SessionsaverSaveRefreshFunc refresh_func;
+			SessionmanagerSaveRefreshFunc refresh_func;
 			gpointer callback_data;
 
 			refresh_func = dialog->refresh_func;
 			callback_data = dialog->user_data;
 
 			g_message (
-				"sessionsaver: Saved session \"%s\"",
+				"sessionmanager: Saved session \"%s\"",
 				name
 			);
 
@@ -236,8 +236,8 @@ sessionsaver_save_dialog_response (
 }
 
 static void
-sessionsaver_save_dialog_free (
-	SessionsaverSaveDialog *dialog
+sessionmanager_save_dialog_free (
+	SessionmanagerSaveDialog *dialog
 )
 {
 	if (dialog == NULL)
@@ -258,18 +258,18 @@ sessionsaver_save_dialog_free (
 	);
 }
 
-SessionsaverSaveDialog *
-sessionsaver_save_dialog_new (
+SessionmanagerSaveDialog *
+sessionmanager_save_dialog_new (
 	GeditWindow                 *window,
-	SessionsaverSaveRefreshFunc  refresh_func,
+	SessionmanagerSaveRefreshFunc  refresh_func,
 	gpointer                     user_data
 )
 {
-	SessionsaverSaveDialog *dialog;
+	SessionmanagerSaveDialog *dialog;
 	GtkWidget *content_area;
 	GtkWidget *box;
 	GtkWidget *label;
-	SessionsaverSessionStore *store;
+	SessionmanagerSessionStore *store;
 	GError *error = NULL;
 	guint i;
 
@@ -279,7 +279,7 @@ sessionsaver_save_dialog_new (
 	);
 
 	dialog = g_new0 (
-		SessionsaverSaveDialog,
+		SessionmanagerSaveDialog,
 		1
 	);
 
@@ -291,13 +291,13 @@ sessionsaver_save_dialog_new (
 	dialog->user_data = user_data;
 
 	dialog->widget = gtk_dialog_new_with_buttons (
-		sessionsaver_translate ("Save Session", "セッションを保存"),
+		sessionmanager_translate ("Save Session", "セッションを保存"),
 		GTK_WINDOW (window),
 		GTK_DIALOG_MODAL |
 		GTK_DIALOG_DESTROY_WITH_PARENT,
-		sessionsaver_translate ("_Cancel", "_キャンセル"),
+		sessionmanager_translate ("_Cancel", "_キャンセル"),
 		GTK_RESPONSE_CANCEL,
-		sessionsaver_translate ("_Save", "_保存"),
+		sessionmanager_translate ("_Save", "_保存"),
 		GTK_RESPONSE_OK,
 		NULL
 	);
@@ -328,7 +328,7 @@ sessionsaver_save_dialog_new (
 	);
 
 	label = gtk_label_new (
-		sessionsaver_translate ("Session name:", "セッション名:")
+		sessionmanager_translate ("Session name:", "セッション名:")
 	);
 
 	gtk_widget_set_halign (
@@ -347,19 +347,19 @@ sessionsaver_save_dialog_new (
 		TRUE
 	);
 
-	store = sessionsaver_load_session_store (
+	store = sessionmanager_load_session_store (
 		&error
 	);
 
 	if (store != NULL)
 	{
 		for (i = 0;
-		     i < sessionsaver_session_store_get_n_sessions (store);
+		     i < sessionmanager_session_store_get_n_sessions (store);
 		     i++)
 		{
-			SessionsaverSession *session;
+			SessionmanagerSession *session;
 
-			session = sessionsaver_session_store_get_nth (
+			session = sessionmanager_session_store_get_nth (
 				store,
 				i
 			);
@@ -367,7 +367,7 @@ sessionsaver_save_dialog_new (
 			if (session == NULL ||
 			    g_ascii_strcasecmp (
 				    session->name,
-				    SESSIONSAVER_PREVIOUS_SESSION_NAME
+				    SESSIONMANAGER_PREVIOUS_SESSION_NAME
 			    ) == 0)
 			{
 				continue;
@@ -379,7 +379,7 @@ sessionsaver_save_dialog_new (
 			);
 		}
 
-		sessionsaver_session_store_free (
+		sessionmanager_session_store_free (
 			store
 		);
 	}
@@ -417,31 +417,31 @@ sessionsaver_save_dialog_new (
 	g_signal_connect (
 		dialog->entry,
 		"changed",
-		G_CALLBACK (sessionsaver_save_dialog_entry_changed),
+		G_CALLBACK (sessionmanager_save_dialog_entry_changed),
 		dialog
 	);
 
 	g_signal_connect (
 		dialog->widget,
 		"response",
-		G_CALLBACK (sessionsaver_save_dialog_response),
+		G_CALLBACK (sessionmanager_save_dialog_response),
 		dialog
 	);
 
 	g_object_set_data_full (
 		G_OBJECT (dialog->widget),
-		"sessionsaver-save-dialog",
+		"sessionmanager-save-dialog",
 		dialog,
 		(GDestroyNotify)
-			sessionsaver_save_dialog_free
+			sessionmanager_save_dialog_free
 	);
 
 	return dialog;
 }
 
 GtkWidget *
-sessionsaver_save_dialog_get_widget (
-	SessionsaverSaveDialog *dialog
+sessionmanager_save_dialog_get_widget (
+	SessionmanagerSaveDialog *dialog
 )
 {
 	g_return_val_if_fail (
@@ -453,8 +453,8 @@ sessionsaver_save_dialog_get_widget (
 }
 
 void
-sessionsaver_save_dialog_present (
-	SessionsaverSaveDialog *dialog
+sessionmanager_save_dialog_present (
+	SessionmanagerSaveDialog *dialog
 )
 {
 	g_return_if_fail (
