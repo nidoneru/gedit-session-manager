@@ -7,4 +7,4 @@ Description=Automatically saves and restores the previous session and lets you s
 Description[ja]=前回のセッションを自動保存・復元し、名前付きセッションを保存・管理できます。
 Authors=にどねるzzZ
 Copyright=Copyright © 2026 にどねるzzZ
-Website=
+Website=https://github.com/nidoneru/gedit-session-manager
