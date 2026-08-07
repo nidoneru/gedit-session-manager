@@ -13,6 +13,7 @@ struct _SessionsaverSaveDialog
 {
 	GeditWindow *window;
 	GtkWidget *widget;
+	GtkWidget *combo;
 	GtkWidget *entry;
 
 	SessionsaverSaveRefreshFunc refresh_func;
@@ -57,41 +58,6 @@ sessionsaver_save_dialog_show_message (
 	);
 }
 
-static gboolean
-sessionsaver_save_dialog_name_exists (
-	const gchar *name
-)
-{
-	SessionsaverSessionStore *store;
-	gboolean exists = FALSE;
-	GError *error = NULL;
-
-	store = sessionsaver_load_session_store (
-		&error
-	);
-
-	if (store == NULL)
-	{
-		g_clear_error (
-			&error
-		);
-
-		return FALSE;
-	}
-
-	exists =
-		sessionsaver_session_store_find (
-			store,
-			name
-		) != NULL;
-
-	sessionsaver_session_store_free (
-		store
-	);
-
-	return exists;
-}
-
 static void
 sessionsaver_save_dialog_entry_changed (
 	GtkEditable *editable,
@@ -119,10 +85,7 @@ sessionsaver_save_dialog_entry_changed (
 		g_ascii_strcasecmp (
 			name,
 			SESSIONSAVER_PREVIOUS_SESSION_NAME
-		) != 0 &&
-		!sessionsaver_save_dialog_name_exists (
-			name
-		);
+		) != 0;
 
 	gtk_dialog_set_response_sensitive (
 		GTK_DIALOG (dialog->widget),
@@ -287,6 +250,7 @@ sessionsaver_save_dialog_free (
 	);
 
 	dialog->widget = NULL;
+	dialog->combo = NULL;
 	dialog->entry = NULL;
 
 	g_free (
@@ -305,6 +269,9 @@ sessionsaver_save_dialog_new (
 	GtkWidget *content_area;
 	GtkWidget *box;
 	GtkWidget *label;
+	SessionsaverSessionStore *store;
+	GError *error = NULL;
+	guint i;
 
 	g_return_val_if_fail (
 		GEDIT_IS_WINDOW (window),
@@ -369,12 +336,59 @@ sessionsaver_save_dialog_new (
 		GTK_ALIGN_START
 	);
 
-	dialog->entry = gtk_entry_new ();
+	dialog->combo = gtk_combo_box_text_new_with_entry ();
+
+	dialog->entry = gtk_bin_get_child (
+		GTK_BIN (dialog->combo)
+	);
 
 	gtk_entry_set_activates_default (
 		GTK_ENTRY (dialog->entry),
 		TRUE
 	);
+
+	store = sessionsaver_load_session_store (
+		&error
+	);
+
+	if (store != NULL)
+	{
+		for (i = 0;
+		     i < sessionsaver_session_store_get_n_sessions (store);
+		     i++)
+		{
+			SessionsaverSession *session;
+
+			session = sessionsaver_session_store_get_nth (
+				store,
+				i
+			);
+
+			if (session == NULL ||
+			    g_ascii_strcasecmp (
+				    session->name,
+				    SESSIONSAVER_PREVIOUS_SESSION_NAME
+			    ) == 0)
+			{
+				continue;
+			}
+
+			gtk_combo_box_text_append_text (
+				GTK_COMBO_BOX_TEXT (dialog->combo),
+				session->name
+			);
+		}
+
+		sessionsaver_session_store_free (
+			store
+		);
+	}
+	else
+	{
+		g_clear_error (
+			&error
+		);
+	}
 
 	gtk_box_pack_start (
 		GTK_BOX (box),
@@ -386,7 +400,7 @@ sessionsaver_save_dialog_new (
 
 	gtk_box_pack_start (
 		GTK_BOX (box),
-		dialog->entry,
+		dialog->combo,
 		FALSE,
 		FALSE,
 		0
