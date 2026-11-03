@@ -16,7 +16,6 @@ shared_module(
   dependencies: libgedit_dep,
   install: true,
   install_dir: get_option('libdir') / 'gedit/plugins',
-  name_suffix: module_suffix,
 )
 custom_target(
   'sessionmanager.plugin',

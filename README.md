@@ -4,7 +4,7 @@ A plugin for saving and restoring sessions in gedit.
 
 It automatically restores the files that were open before gedit was closed, and also lets you save and manage multiple named sessions.
 
-Designed for **gedit 48.2 and later**. Currently, the plugin has been tested on **gedit 50**.
+Designed for **gedit 48.2 and later**. Currently, the plugin has been tested on **gedit 51**.
 
 ![Session Manager](docs/images/sessionmanager.png)
 
@@ -57,7 +57,7 @@ You can also open the session management dialog by pressing **Ctrl+R** in gedit.
 
 This release is intended for the **Flatpak version of gedit**.
 
-It is designed for **gedit 48.2 and later**, but currently has only been tested on **gedit 50**.
+It is designed for **gedit 48.2 and later**, but currently has only been tested on **gedit 51**.
 
 Copy the following files to:
 
